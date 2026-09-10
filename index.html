@@ -3,307 +3,256 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Microstock AI Studio & Auto-Drive</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Microstock Studio Generator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 100%;
+      max-width: 650px;
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      border: 1px solid #334155;
+    }
+    h2 {
+      color: #38bdf8;
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+      margin-bottom: 25px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+    textarea, select {
+      width: 100%;
+      padding: 12px 14px;
+      background: #0f172a;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+    }
+    textarea:focus, select:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+    .btn-submit {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      width: 100%;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .btn-submit:hover {
+      background: #0369a1;
+    }
+    .btn-submit:disabled {
+      background: #475569;
+      cursor: not-allowed;
+    }
+    #loader {
+      display: none;
+      text-align: center;
+      margin-top: 25px;
+      padding: 15px;
+      background: #0f172a;
+      border-radius: 8px;
+      border: 1px dashed #38bdf8;
+    }
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top: 3px solid #38bdf8;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #loader p {
+      color: #38bdf8;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    #result {
+      display: none;
+      margin-top: 30px;
+      border-top: 1px solid #334155;
+      padding-top: 25px;
+      text-align: center;
+    }
+    #previewImg {
+      max-width: 100%;
+      border-radius: 12px;
+      border: 1px solid #475569;
+      margin-top: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .btn-drive {
+      display: inline-block;
+      margin-top: 20px;
+      background: #10b981;
+      color: white;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.2s ease;
+    }
+    .btn-drive:hover {
+      background: #059669;
+    }
+    .prompt-info {
+      background: #0f172a;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      text-align: left;
+      border: 1px solid #334155;
+      font-size: 12px;
+      color: #94a3b8;
+      word-break: break-word;
+    }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col p-6">
+<body>
 
-  <!-- Header -->
-  <header class="max-w-5xl w-full mx-auto border-b border-slate-800 pb-4 mb-6 flex justify-between items-center">
-    <div>
-      <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-        Microstock AI Generator Studio
-      </h1>
-      <p class="text-xs text-slate-400 mt-1">Generate Gambar HD, Auto-Metadata & Simpan Otomatis ke Google Drive</p>
+  <div class="container">
+    <h2>Microstock Studio Generator</h2>
+    <div class="subtitle">Powered by Google Imagen 3 (Studio Quality)</div>
+
+    <div class="form-group">
+      <label for="promptInput">Deskripsi Gambar / Prompt (Disarankan Bahasa Inggris):</label>
+      <textarea id="promptInput" rows="3" placeholder="Contoh: a fresh yellow banana bunch on white studio table"></textarea>
     </div>
-    <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full">
-      Status: Ready ($0 Stack)
-    </span>
-  </header>
 
-  <!-- Main Container -->
-  <main class="max-w-5xl w-full mx-auto grid grid-cols-1 md:grid-cols-12 gap-6">
+    <div class="form-group">
+      <label for="aspectRatio">Rasio Gambar:</label>
+      <select id="aspectRatio">
+        <option value="1:1">1:1 (Square / Persegi)</option>
+        <option value="4:3">4:3 (Landscape Standard)</option>
+        <option value="16:9">16:9 (Widescreen)</option>
+        <option value="3:4">3:4 (Portrait)</option>
+      </select>
+    </div>
 
-    <!-- Left Column: Controls (5 cols) -->
-    <section class="md:col-span-5 space-y-5">
+    <button id="btnSubmit" class="btn-submit" onclick="generateImage()">Generate Gambar</button>
+
+    <div id="loader">
+      <div class="spinner"></div>
+      <p>Sedang membuat gambar & memproses ke Google Drive... (10-20 detik)</p>
+    </div>
+
+    <div id="result">
+      <h3 style="color: #f8fafc; font-size: 16px;">Hasil Siap Microstock:</h3>
+      <img id="previewImg" src="" alt="Preview Hasil Gambar">
+      <br>
+      <a id="driveUrl" class="btn-drive" href="#" target="_blank">Buka / Simpan di Google Drive</a>
       
-      <!-- API Key Option -->
-      <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 space-y-3">
-        <label class="block text-xs font-semibold text-slate-300">Gemini API Key (Opsional - Gratis):</label>
-        <input type="password" id="geminiApiKey" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs focus:outline-none focus:border-indigo-500">
-        <p class="text-[10px] text-slate-500">Kosongkan jika ingin menggunakan sistem penataan kata kunci otomatis bawaan.</p>
+      <div class="prompt-info">
+        <strong style="color: #cbd5e1; display: block; margin-bottom: 5px;">Prompt Hasil Optimasi Sistem:</strong>
+        <p id="optPrompt" style="margin: 0; line-height: 1.4;"></p>
       </div>
+    </div>
+  </div>
 
-      <!-- Prompt Input -->
-      <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Prompt Ide Utama:</label>
-          <textarea id="inputPrompt" rows="3" placeholder="Contoh: Modern Asian businesswoman working on laptop in green office, commercial stock photo..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs focus:outline-none focus:border-indigo-500"></textarea>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Preset Gaya Gambar:</label>
-          <select id="stylePreset" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs">
-            <option value="commercial stock photo, studio lighting, professional">Stock Photo Komersial</option>
-            <option value="clean vector illustration, flat design, isolated background">Ilustrasi Vektor</option>
-            <option value="3d render asset, isometric view, octane render">Aset 3D Render</option>
-          </select>
-        </div>
-
-        <button onclick="runPipeline()" id="btnGenerate" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-lg text-xs transition shadow-lg shadow-indigo-600/20">
-          1. Generate Gambar HD & Metadata
-        </button>
-      </div>
-
-      <!-- Action / Integration Buttons -->
-      <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 space-y-3">
-        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Aksi & Integrasi Cloud</h3>
-
-        <button onclick="saveDirectToDrive()" id="btnSaveDrive" disabled class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-lg text-xs transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-          <span>2. Simpan Otomatis ke Google Drive</span>
-        </button>
-
-        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60">
-          <button onclick="downloadJPG()" id="btnDlJpg" disabled class="bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded text-[11px] disabled:opacity-40">
-            Download JPG
-          </button>
-          <button onclick="downloadCSV()" id="btnDlCsv" disabled class="bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded text-[11px] disabled:opacity-40">
-            Download CSV
-          </button>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- Right Column: Canvas Preview & Metadata (7 cols) -->
-    <section class="md:col-span-7 space-y-5">
-      
-      <!-- Preview Canvas -->
-      <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4">
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="text-xs font-semibold text-slate-400 uppercase">Preview Gambar HD</h3>
-          <span id="badgeRes" class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded">Resolusi: Ready HD</span>
-        </div>
-
-        <div class="bg-slate-950 rounded-lg border border-slate-800 h-64 flex items-center justify-center overflow-hidden relative">
-          <div id="loader" class="hidden flex flex-col items-center gap-2">
-            <div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-            <span class="text-xs text-indigo-300">Merender Gambar HD & AI Tagging...</span>
-          </div>
-
-          <img id="previewImage" class="max-h-full w-auto object-contain hidden" alt="Hasil Generation">
-          <span id="placeholderText" class="text-xs text-slate-600">Gambar akan muncul di sini</span>
-        </div>
-      </div>
-
-      <!-- Generated IPTC Metadata -->
-      <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 space-y-3">
-        <h3 class="text-xs font-semibold text-slate-400 uppercase">AI Generated IPTC Metadata</h3>
-
-        <div>
-          <label class="text-[10px] text-slate-500 uppercase block mb-1">Judul Gambar (Title)</label>
-          <input type="text" id="metaTitle" readonly class="w-full bg-slate-950 border border-slate-800 rounded p-2 text-xs text-slate-300">
-        </div>
-
-        <div>
-          <label class="text-[10px] text-slate-500 uppercase block mb-1">Deskripsi (Description)</label>
-          <textarea id="metaDesc" rows="2" readonly class="w-full bg-slate-950 border border-slate-800 rounded p-2 text-xs text-slate-300"></textarea>
-        </div>
-
-        <div>
-          <label class="text-[10px] text-slate-500 uppercase block mb-1">Keywords / Tags (30-40 Tags)</label>
-          <div id="metaKeywords" class="bg-slate-950 border border-slate-800 rounded p-2 text-slate-400 min-h-[50px] max-h-[80px] overflow-y-auto flex flex-wrap gap-1 text-[10px]">
-            <span class="text-slate-600">Belum ada metadata.</span>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-  </main>
-
-  <!-- JavaScript Application Logic -->
   <script>
-    // =========================================================================
-    // ISI DENGAN WEB APP URL DARI GOOGLE APPS SCRIPT (BAGIAN 1 - LANGKAH 4)
-    // =========================================================================
-    const GAS_ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbxFPH740FA78lsvfUB3J-1vBY7C6OV0VicLjAi3k8-vaUspOG8Pf5QKrfx6p6buj1oA/exec";
+    // ============================================================================
+    // TEMPILKAN URL WEB APP DARI GOOGLE APPS SCRIPT ANDA DI SINI
+    // ============================================================================
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFPH740FA78lsvfUB3J-1vBY7C6OV0VicLjAi3k8-vaUspOG8Pf5QKrfx6p6buj1oA/exec";
 
-    let currentBlob = null;
-    let metadata = { title: '', desc: '', keywords: '' };
+    async function generateImage() {
+      const promptField = document.getElementById("promptInput");
+      const ratioField = document.getElementById("aspectRatio");
+      const btn = document.getElementById("btnSubmit");
+      const loader = document.getElementById("loader");
+      const resultBox = document.getElementById("result");
 
-    async function runPipeline() {
-      const promptVal = document.getElementById('inputPrompt').value.trim();
-      if (!promptVal) return alert("Mohon isi prompt ide terlebih dahulu!");
+      const promptValue = promptField.value.trim();
 
-      showLoading(true);
+      if (!promptValue) {
+        alert("Silakan ketik deskripsi gambar terlebih dahulu!");
+        return;
+      }
 
-      const styleVal = document.getElementById('stylePreset').value;
-      const fullPrompt = `${promptVal}, ${styleVal}, highly detailed, 8k resolution, stock photo quality`;
-      
-      // Request HD Resolution Image (2560x1440)
-      const encodedPrompt = encodeURIComponent(fullPrompt);
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=2560&height=1440&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+      // Kunci tombol & tampilkan animasi loading
+      btn.disabled = true;
+      loader.style.display = "block";
+      resultBox.style.display = "none";
+
+      // Payload JSON yang dikirimkan ke Apps Script
+      const payloadData = {
+        prompt: promptValue,
+        aspectRatio: ratioField.value
+      };
 
       try {
-        const res = await fetch(imageUrl);
-        currentBlob = await res.blob();
-
-        const imgEl = document.getElementById('previewImage');
-        imgEl.src = URL.createObjectURL(currentBlob);
-        imgEl.classList.remove('hidden');
-        document.getElementById('placeholderText').classList.add('hidden');
-
-        // Process Metadata
-        await generateMetadata(promptVal);
-
-        // Enable Buttons
-        document.getElementById('btnSaveDrive').disabled = false;
-        document.getElementById('btnDlJpg').disabled = false;
-        document.getElementById('btnDlCsv').disabled = false;
-
-      } catch (err) {
-        alert("Gagal merender gambar. Silakan coba lagi.");
-      } finally {
-        showLoading(false);
-      }
-    }
-
-    async function generateMetadata(basePrompt) {
-      const apiKey = document.getElementById('geminiApiKey').value.trim();
-
-      if (apiKey) {
-        try {
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-          const payload = {
-            contents: [{
-              parts: [{
-                text: `You are a Microstock Metadata expert. For concept: "${basePrompt}", return JSON only:
-                {"title": "short title max 8 words", "description": "stock description 15-20 words", "keywords": ["keyword1", "keyword2", ... 30 keywords]}`
-              }]
-            }]
-          };
-
-          const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          const data = await res.json();
-          const parsed = JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim());
-
-          metadata.title = parsed.title;
-          metadata.desc = parsed.description;
-          metadata.keywords = parsed.keywords.join(',');
-
-        } catch (e) {
-          fallbackMetadata(basePrompt);
-        }
-      } else {
-        fallbackMetadata(basePrompt);
-      }
-
-      // Render to UI
-      document.getElementById('metaTitle').value = metadata.title;
-      document.getElementById('metaDesc').value = metadata.desc;
-      
-      const kwContainer = document.getElementById('metaKeywords');
-      kwContainer.innerHTML = metadata.keywords.split(',')
-        .map(kw => `<span class="bg-indigo-950 text-indigo-300 border border-indigo-800/60 px-2 py-0.5 rounded-full">${kw.trim()}</span>`)
-        .join('');
-    }
-
-    function fallbackMetadata(basePrompt) {
-      const words = basePrompt.toLowerCase().replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 3);
-      const stockTags = ["stock", "photo", "business", "concept", "isolated", "background", "modern", "illustration", "design", "creative", "commercial", "high", "quality", "vector", "art"];
-      const combined = Array.from(new Set([...words, ...stockTags])).slice(0, 30);
-
-      metadata.title = basePrompt.substring(0, 50) + " Commercial Stock";
-      metadata.desc = `High quality commercial stock photo illustration of ${basePrompt}. Suitable for advertising and creative projects.`;
-      metadata.keywords = combined.join(',');
-    }
-
-    async function saveDirectToDrive() {
-      if (!currentBlob) return;
-      if (GAS_ENDPOINT_URL.includes("MASUKKAN_WEB_APP_URL")) {
-        return alert("Mohon masukkan Web App URL Google Apps Script Anda pada variabel GAS_ENDPOINT_URL di kode HTML terlebih dahulu!");
-      }
-
-      const btnDrive = document.getElementById('btnSaveDrive');
-      btnDrive.innerText = "Mengirim ke Google Drive...";
-      btnDrive.disabled = true;
-
-      try {
-        const base64Image = await blobToBase64(currentBlob);
-        const filename = metadata.title.toLowerCase().replace(/[^a-z0-9]/g, '_') + '.jpg';
-
-        const payload = {
-          filename: filename,
-          imageBase64: base64Image,
-          title: metadata.title,
-          description: metadata.desc,
-          keywords: metadata.keywords
-        };
-
-        const response = await fetch(GAS_ENDPOINT_URL, {
+        const response = await fetch(APPS_SCRIPT_URL, {
           method: "POST",
-          body: JSON.stringify(payload)
+          headers: { 
+            "Content-Type": "text/plain" 
+          },
+          body: JSON.stringify(payloadData)
         });
 
-        const result = await response.json();
+        const res = await response.json();
 
-        if (result.status === "success") {
-          alert("BERHASIL: Gambar & Metadata berhasil tersimpan di Google Drive! Auto-FTP akan mengunggahnya ke agensi.");
+        if (res.success) {
+          document.getElementById("previewImg").src = res.base64Data;
+          document.getElementById("driveUrl").href = res.fileUrl;
+          document.getElementById("optPrompt").innerText = res.enhancedPrompt;
+          resultBox.style.display = "block";
         } else {
-          alert("Gagal menyimpan ke Drive: " + result.message);
+          alert("Gagal: " + res.message);
         }
-
       } catch (err) {
-        alert("Kesalahan koneksi: " + err.message);
+        alert("Terjadi kesalahan koneksi ke server: " + err.message);
       } finally {
-        btnDrive.innerText = "2. Simpan Otomatis ke Google Drive";
-        btnDrive.disabled = false;
-      }
-    }
-
-    function blobToBase64(blob) {
-      return new Promise((resolve, _) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
-      });
-    }
-
-    function downloadJPG() {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(currentBlob);
-      a.download = metadata.title.toLowerCase().replace(/[^a-z0-9]/g, '_') + '.jpg';
-      a.click();
-    }
-
-    function downloadCSV() {
-      const csv = `Filename,Title,Description,Keywords\n"${metadata.title}.jpg","${metadata.title}","${metadata.desc}","${metadata.keywords}"`;
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = "metadata_microstock.csv";
-      a.click();
-    }
-
-    function showLoading(show) {
-      const loader = document.getElementById('loader');
-      const placeholder = document.getElementById('placeholderText');
-      const previewImage = document.getElementById('previewImage');
-
-      if (show) {
-        loader.classList.remove('hidden');
-        placeholder.classList.add('hidden');
-        previewImage.classList.add('hidden');
-      } else {
-        loader.classList.add('hidden');
+        btn.disabled = false;
+        loader.style.display = "none";
       }
     }
   </script>
+
 </body>
 </html>
